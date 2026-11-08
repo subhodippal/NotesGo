@@ -812,20 +812,39 @@ $('drawerTheme').onclick = () => {
 };
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(store.get('notesgo-theme', '')));
 
-/* ---------- Install ---------- */
+
+/* ---------- Install (button in the header) ---------- */
 let installEvent = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function renderInstall() {
+  // Chrome/Edge/Brave/Android: when the browser offers install. iPhone/iPad: show how to add to Home Screen.
+  $('installBtn').hidden = isStandalone() || !(installEvent || isIOS);
+}
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   installEvent = e;
-  $('installBtn').hidden = false;
+  renderInstall();
+});
+window.addEventListener('appinstalled', () => {
+  installEvent = null;
+  renderInstall();
+  toast('NotesGo installed');
 });
 $('installBtn').onclick = async () => {
-  if (!installEvent) return;
-  installEvent.prompt();
-  await installEvent.userChoice;
-  installEvent = null;
-  $('installBtn').hidden = true;
+  if (installEvent) {
+    installEvent.prompt();
+    await installEvent.userChoice;
+    installEvent = null;
+    renderInstall();
+    return;
+  }
+  menuSheet('Install NotesGo', [
+    ['ok', 'i-install', 'Tap the Share button', { hint: 'In Safari, the square with an arrow at the bottom' }],
+    ['ok', 'i-plus', 'Choose “Add to Home Screen”', { hint: 'NotesGo then opens like an app and works offline' }],
+  ]);
 };
+renderInstall();
 
 /* ======================================================================
    Cards: tap opens (or toggles while selecting); long-press starts selecting
@@ -2263,20 +2282,23 @@ function calcSuggestion(el) {
   if (!before.trim()) {
     const lines = text.slice(0, start).split('\n');
     lines.pop(); // the part after the last newline is the current (empty) line
-    const re = /^\s*([+\-−])\s*([₹$€£¥]?)\s*(\d[\d,]*(?:\.\d+)?)/;
+    // "+500 received", "-200 ticket", or plain numbers "876" (a plain number counts as +).
+    const re = /^\s*([+\-−])?\s*([₹$€£¥]?)\s*(\d[\d,]*(?:\.\d+)?)(?![\d.]*\s*[-+*/×xX÷%=]\s*\d)/;
     let total = 0;
     let count = 0;
+    let signed = false;
     let cur = '';
     for (let k = lines.length - 1; k >= 0; k--) {
       const mm = re.exec(lines[k]);
       if (!mm) break;
       const n = parseFloat(mm[3].replace(/,/g, ''));
-      total += mm[1] === '+' ? n : -n;
+      total += mm[1] && mm[1] !== '+' ? -n : n;
+      signed = signed || Boolean(mm[1]);
       cur = cur || mm[2];
       count++;
     }
     if (count >= 2) {
-      const sign = total < 0 ? '-' : '+';
+      const sign = total < 0 ? '-' : signed ? '+' : '';
       const line = `${sign}${cur}${fmtNum(Math.abs(total))} in total`;
       return { label: line, parts: ['--------------', line] };
     }
@@ -2949,7 +2971,10 @@ async function setNewPasswordSheet(rkey) {
      <div class="err" id="verr"></div>
      <div class="sheet-actions"><button class="btn btn-ghost" type="button" data-cancel>Cancel</button><button class="btn btn-gradient" type="submit">Save new password</button></div></form>`,
   );
-  el.querySelector('[data-cancel]').onclick = () => closeSheet();
+  el.querySelector('[data-cancel]').onclick = () => {
+    pendingReset.clear(); // cancelled: don't reopen on the next reload
+    closeSheet();
+  };
   el.querySelector('#vf').onsubmit = async (e) => {
     e.preventDefault();
     const err = el.querySelector('#verr');

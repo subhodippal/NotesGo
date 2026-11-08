@@ -6,7 +6,7 @@ It uses the **same Supabase project as myExpenses**, with its own schema (`notes
 
 ## Features
 
-The look follows **myExpenses**: purple gradient header, glass buttons, cards, bottom sheets and a gradient selection bar, in **light and dark** mode. Tap ☀️/🌙 in the header to switch; the side menu also offers *System*.
+Layout follows **myExpenses** (gradient header, glass buttons, cards, bottom sheets, gradient selection bar) in a **Sunset** colour theme (orange → amber), in **light and dark** mode. Light/dark is the ☀️/🌙 button in the header; the side menu also offers *System*. **Install** sits in the header whenever the browser can install the app (on iPhone it shows the *Add to Home Screen* steps).
 
 - **Side menu** (☰ at the top left): My Notes, Shared, Secure folder, Archive, Trash, and your tags. *Edit* renames or deletes a tag everywhere. Sign out is at the bottom.
 - **Create** (the **+ New** button opens a bottom sheet): Note, Checklist or Secure note.
@@ -17,7 +17,7 @@ The look follows **myExpenses**: purple gradient header, glass buttons, cards, b
 - **Table colour**: the 🎨 button under a table (or ⋯ → *Table colour*) picks one of the 12 note colours for that table; the header row gets a slightly darker shade.
 - **Auto-calculate** (calculator button in the editor's bottom bar, on by default; tap to turn off/on, remembered on this device):
   - End a sum with `=` and the answer is suggested: `45 + 30 + 10 =` → **85**. Works with + − × (or `*`, `x`) ÷ (or `/`), brackets and `%` (`200 * 10%` → 20).
-  - Write amounts on lines that start with `+` or `-` (`+500 received`, `-200 train ticket`, `-100 food`). On the empty line below, a total is suggested: a `--------------` line and `+200 in total`. A currency sign after the +/− (₹ $ € £ ¥) is kept.
+  - Write amounts on lines that start with `+` or `-` (`+500 received`, `-200 train ticket`, `-100 food`). On the empty line below, a total is suggested (plain numbers on their own lines, like `876` / `87` / `543`, work too and count as +): a `--------------` line and `+200 in total`. A currency sign after the +/− (₹ $ € £ ¥) is kept.
   - Tap the suggestion chip (or press Tab on a keyboard) to add it. Ignore it and it goes away as you keep typing.
 - **Hidden text** (passwords, PINs): select the words, then tap the 👁 (eye-off) button in the editor's bottom bar. They show as `••••••` with an eye to reveal them; when shown, a copy button copies them. To show them as normal text again, select them (or put the cursor right next to them) and tap the bottom eye button again. Cards always show dots. *This only hides the text on screen — for real secrets, put the note in the Secure folder, which encrypts it.*
 - **Divider line**: **⊞ Insert → Divider line** adds a horizontal line. ✕ next to it, or Backspace at the start of the line below, removes it.

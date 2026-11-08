@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta name="theme-color" content="#5b45e8" />
+    <meta name="theme-color" content="#f97316" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -110,6 +110,7 @@
             <h1 id="viewTitle">NotesGo</h1>
             <button class="status" id="syncStatus" type="button">Synced</button>
           </div>
+          <button class="glass-btn install-btn" id="installBtn" type="button" aria-label="Install app" hidden><svg><use href="#i-install" /></svg><span>Install</span></button>
           <button class="glass-btn round" id="themeBtn" type="button" aria-label="Switch light or dark mode"><svg><use href="#i-moon" /></svg></button>
           <button class="avatar-wrap" id="avatarBtn" type="button" aria-label="Account">
             <span class="user-avatar" id="avatar"></span><span class="online-dot" id="onlineDot"></span>
@@ -160,7 +161,6 @@
         </div>
         <div class="drawer-list" id="drawerList"></div>
         <div class="drawer-foot">
-          <button class="drawer-item" id="installBtn" type="button" hidden><svg><use href="#i-install" /></svg><span>Install app</span></button>
           <button class="drawer-item" id="drawerTheme" type="button"><svg><use href="#i-moon" /></svg><span id="themeLabel">Theme: System</span></button>
           <button class="drawer-item danger" id="drawerOut" type="button"><svg><use href="#i-logout" /></svg><span>Sign out</span></button>
         </div>
