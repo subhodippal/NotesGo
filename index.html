@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#5b45e8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="NotesGo" />
+    <meta name="description" content="Notes and checklists that work offline, sync everywhere and can be shared" />
+    <title>NotesGo</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      // Apply the saved theme before first paint (no flash).
+      try {
+        const t = localStorage.getItem('notesgo-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 4h16v7H4zm0 9h16v7H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M14 4v5c0 1.12.37 2.16 1 3H9c.65-.86 1-1.9 1-3V4h4m3-2H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3V4h1c.55 0 1-.45 1-1s-.45-1-1-1z" /></symbol>
+      <symbol id="i-pin-on" viewBox="0 0 24 24"><path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z" /></symbol>
+      <symbol id="i-archive" viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5 6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z" /></symbol>
+      <symbol id="i-unarchive" viewBox="0 0 24 24"><path d="M20.55 5.22l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.15.55L3.46 5.22C3.17 5.57 3 6.01 3 6.5V19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.49-.17-.93-.45-1.28zM12 9.5l5.5 5.5H14v2h-4v-2H6.5L12 9.5zM5.12 5l.82-1h12l.93 1H5.12z" /></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" /></symbol>
+      <symbol id="i-unlock" viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></symbol>
+      <symbol id="i-restore" viewBox="0 0 24 24"><path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14zM6 7v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zm8 7v4h-4v-4H8l4-4 4 4h-2z" /></symbol>
+      <symbol id="i-forever" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12 1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z" /></symbol>
+      <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" /></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16zM16 17H5V7h11l3.55 5L16 17z" /></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" /></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></symbol>
+      <symbol id="i-cloud-done" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17 15.18 9l1.41 1.41L10 17z" /></symbol>
+      <symbol id="i-cloud-off" viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4c-1.48 0-2.85.43-4.01 1.17l1.46 1.46A5.497 5.497 0 0 1 17.5 11.5v.5H19c1.66 0 3 1.34 3 3 0 1.13-.64 2.11-1.56 2.62l1.45 1.45C23.16 18.16 24 16.68 24 15c0-2.64-2.05-4.78-4.65-4.96zM3 5.27l2.75 2.74C2.56 8.15 0 10.77 0 14c0 3.31 2.69 6 6 6h11.73l2 2L21 20.73 4.27 4 3 5.27zM7.73 10l8 8H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h1.73z" /></symbol>
+      <symbol id="i-cloud-up" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" /></symbol>
+      <symbol id="i-sync" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" /></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" /></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" /></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" /></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" /></symbol>
+      <symbol id="i-key" viewBox="0 0 24 24"><path d="M12.65 10A5.99 5.99 0 0 0 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" /></symbol>
+      <symbol id="i-install" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" /></symbol>
+      <symbol id="i-people" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.330-4.67-3.5-7-3.5z" /></symbol>
+      <symbol id="i-person-add" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></symbol>
+      <symbol id="i-checklist" viewBox="0 0 24 24"><path d="M22 7h-9v2h9V7zm0 8h-9v2h9v-2zM5.54 11 2 7.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 11zm0 8L2 15.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 19z" /></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z" /></symbol>
+      <symbol id="i-select" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></symbol>
+      <symbol id="i-devices" viewBox="0 0 24 24"><path d="M4 6h18V4H4c-1.1 0-2 .9-2 2v11H0v3h14v-3H4V6zm19 2h-6c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1zm-1 9h-4v-7h4v7z" /></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" /></symbol>
+    </svg>
+    <!-- Sign-in screen -->
+    <section id="login" class="login" hidden>
+      <div class="login-hero">
+        <img class="login-logo" src="icons/icon.svg" alt="" width="72" height="72" />
+        <h1>NotesGo</h1>
+        <p>Your notes, everywhere.</p>
+        <button id="googleBtn" class="google-btn" type="button">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+          </svg>
+          Continue with Google
+        </button>
+        <p id="loginMsg" class="login-msg" role="status"></p>
+      </div>
+      <ul class="login-points">
+        <li><span class="lp-icon"><svg><use href="#i-people" /></svg></span>Share notes with friends</li>
+        <li><span class="lp-icon"><svg><use href="#i-lock" /></svg></span>Secret notes in a locked folder</li>
+        <li><span class="lp-icon"><svg><use href="#i-cloud-done" /></svg></span>Works offline, syncs when online</li>
+        <li><span class="lp-icon"><svg><use href="#i-devices" /></svg></span>Mobile, PC &amp; any browser</li>
+      </ul>
+    </section>
+
+    <!-- Main app -->
+    <div id="app" class="app" hidden>
+      <header class="hero">
+        <div class="hero-inner">
+          <button class="glass-btn round" id="menuBtn" type="button" aria-label="Open menu"><svg><use href="#i-menu" /></svg></button>
+          <div class="hero-titles">
+            <h1 id="viewTitle">NotesGo</h1>
+            <button class="status" id="syncStatus" type="button">Synced</button>
+          </div>
+          <button class="glass-btn round" id="themeBtn" type="button" aria-label="Switch light or dark mode"><svg><use href="#i-moon" /></svg></button>
+          <button class="avatar-wrap" id="avatarBtn" type="button" aria-label="Account">
+            <span class="user-avatar" id="avatar"></span><span class="online-dot" id="onlineDot"></span>
+          </button>
+        </div>
+        <div class="hero-search">
+          <svg><use href="#i-search" /></svg>
+          <input id="search" type="search" placeholder="Search notes, lists and tags" autocomplete="off" enterkeyhint="search" />
+          <button class="clear-search" id="clearSearch" type="button" aria-label="Clear search" hidden><svg><use href="#i-close" /></svg></button>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <div class="chips" id="chips" role="tablist"></div>
+        <button class="tool-btn" id="selectBtn" type="button" aria-label="Select notes"><svg><use href="#i-select" /></svg></button>
+        <button class="tool-btn" id="viewBtn" type="button" aria-label="Switch layout"><svg><use href="#i-grid" /></svg></button>
+      </div>
+
+      <main id="main" class="main">
+        <div id="banner" class="banner" hidden></div>
+        <section id="pinnedWrap" hidden>
+          <h3 class="section-label"><svg><use href="#i-pin-on" /></svg>Pinned</h3>
+          <div id="pinned" class="notes"></div>
+        </section>
+        <h3 class="section-label" id="othersLabel" hidden>Others</h3>
+        <div id="others" class="notes"></div>
+        <div id="empty" class="empty" hidden></div>
+      </main>
+
+      <button id="fab" class="fab" type="button" aria-label="Create"><svg><use href="#i-plus" /></svg><span>New</span></button>
+
+      <!-- Multi-select bar -->
+      <div id="selBar" class="selection-bar" hidden>
+        <div class="sel-top">
+          <button class="icon-btn" id="selClose" type="button" aria-label="Cancel selection"><svg><use href="#i-close" /></svg></button>
+          <strong id="selCount">0 selected</strong>
+          <button class="link-btn" id="selAll" type="button">Select all</button>
+        </div>
+        <div class="sel-actions" id="selActions"></div>
+      </div>
+
+      <!-- Side menu -->
+      <div id="scrim" class="scrim" hidden></div>
+      <nav id="drawer" class="drawer" aria-label="Menu" hidden>
+        <div class="drawer-head">
+          <span class="user-avatar" id="drawerAvatar"></span>
+          <div class="drawer-user"><strong id="drawerName"></strong><small id="drawerEmail"></small></div>
+        </div>
+        <div class="drawer-list" id="drawerList"></div>
+        <div class="drawer-foot">
+          <button class="drawer-item" id="installBtn" type="button" hidden><svg><use href="#i-install" /></svg><span>Install app</span></button>
+          <button class="drawer-item" id="drawerTheme" type="button"><svg><use href="#i-moon" /></svg><span id="themeLabel">Theme: System</span></button>
+          <button class="drawer-item danger" id="drawerOut" type="button"><svg><use href="#i-logout" /></svg><span>Sign out</span></button>
+        </div>
+      </nav>
+
+      <!-- Note editor -->
+      <section id="editor" class="editor" hidden aria-label="Edit note">
+        <header class="editor-top">
+          <button class="icon-btn" id="edBack" type="button" aria-label="Back"><svg><use href="#i-back" /></svg></button>
+          <span class="spacer"></span>
+          <button class="icon-btn" id="edPin" type="button" aria-label="Pin"><svg><use href="#i-pin" /></svg></button>
+          <button class="icon-btn" id="edShare" type="button" aria-label="Share"><svg><use href="#i-person-add" /></svg></button>
+          <button class="icon-btn" id="edSecure" type="button" aria-label="Move to Secure folder"><svg><use href="#i-lock" /></svg></button>
+          <button class="icon-btn" id="edMore" type="button" aria-label="More"><svg><use href="#i-more" /></svg></button>
+        </header>
+        <div class="editor-body" id="edBody">
+          <div class="ed-badges" id="edBadges"></div>
+          <textarea id="edTitle" class="ed-title" placeholder="Title" rows="1" maxlength="500"></textarea>
+          <textarea id="edContent" class="ed-content" placeholder="Start writing…" rows="6"></textarea>
+          <div id="edItems" class="checklist" hidden></div>
+          <div id="edTags" class="tag-row"></div>
+        </div>
+        <footer class="editor-bottom">
+          <button class="icon-btn" id="edColor" type="button" aria-label="Background colour"><svg><use href="#i-palette" /></svg></button>
+          <button class="icon-btn" id="edTag" type="button" aria-label="Tags"><svg><use href="#i-tag" /></svg></button>
+          <button class="icon-btn" id="edKind" type="button" aria-label="Switch to checklist"><svg><use href="#i-checklist" /></svg></button>
+          <span class="ed-time" id="edTime"></span>
+        </footer>
+        <div class="palette" id="palette" hidden></div>
+      </section>
+
+      <!-- Bottom sheet (menus, pickers, dialogs) -->
+      <div id="sheetScrim" class="scrim sheet-scrim" hidden></div>
+      <div id="sheet" class="sheet" role="dialog" aria-modal="true" hidden></div>
+
+      <div id="toast" class="toast" role="status" hidden></div>
+    </div>
+
+    <script src="vendor/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="db.js"></script>
+    <script src="vault.js"></script>
+    <script src="sync.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
