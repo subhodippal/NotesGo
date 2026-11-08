@@ -275,7 +275,7 @@ const Cloud = (() => {
       }
       return false;
     }
-    if (local && local.salt === remote.salt && local.check_value === remote.check_value) return false;
+    if (local && local.salt === remote.salt && local.check_value === remote.check_value && (local.recovery_wrap || '') === (remote.recovery_wrap || '')) return false;
     await DB.put('vault', { ...remote, synced: 1 });
     return true;
   }
@@ -302,6 +302,36 @@ const Cloud = (() => {
     return data;
   }
 
+  /** Save the recovery key + wrapped vault key together (one transaction on the server). */
+  async function saveVaultRecovery(rkey, wrap) {
+    const { error } = await client.rpc('save_vault_recovery', { p_rkey: rkey, p_wrap: wrap });
+    if (error) throw error;
+  }
+
+  /** Email a one-time sign-in code (and link) to the signed-in user's address. */
+  async function sendEmailCode(email) {
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname },
+    });
+    if (error) throw error;
+  }
+
+  /** Check the 6-digit code; on success the session is refreshed as "just verified by email". */
+  async function verifyEmailCode(email, token) {
+    const { data, error } = await client.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+    if (data?.user && user && data.user.id !== user.id) throw new Error('That code belongs to a different account.');
+    return data;
+  }
+
+  /** The recovery key; only works within 15 minutes of verifying an email code. */
+  async function getVaultRecovery() {
+    const { data, error } = await client.rpc('get_vault_recovery');
+    if (error) throw error;
+    return data;
+  }
+
   async function deleteVault() {
     const { error } = await client.from('vaults').delete().eq('user_id', user.id);
     if (error) throw error;
@@ -316,6 +346,10 @@ const Cloud = (() => {
     startRealtime,
     stopRealtime,
     fetchVault,
+    saveVaultRecovery,
+    sendEmailCode,
+    verifyEmailCode,
+    getVaultRecovery,
     createVault,
     replaceVault,
     deleteVault,

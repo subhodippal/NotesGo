@@ -5,7 +5,11 @@
 // The vault row stores the salt and `check_value` = the encrypted text CHECK, which tells us
 // whether a typed password is right. Each secure note stores its private fields as
 // "v1.<keyId>.<iv>.<ciphertext>" ({title, content, items, tags} inside). keyId (derived from the salt) shows which password encrypted it.
-// Forgetting the password means those notes can't be read by anyone — including us.
+//
+// Email recovery: the same key is also stored wrapped ("recovery_wrap", AES-GCM) with a random
+// recovery key. The server only hands that recovery key out to a session that has just verified
+// an email code (see notesgo.get_vault_recovery in schema.sql), so "Forgot password?" can unlock
+// the folder and set a new password without losing notes.
 
 const Vault = (() => {
   const CHECK = 'notesgo-vault-ok';
@@ -30,7 +34,7 @@ const Vault = (() => {
       { name: 'PBKDF2', hash: 'SHA-256', salt: fromB64(saltB64), iterations },
       base,
       { name: 'AES-GCM', length: 256 },
-      false,
+      true, // exportable so it can be wrapped for email recovery (it still only lives in memory)
       ['encrypt', 'decrypt'],
     );
   }
@@ -75,6 +79,35 @@ const Vault = (() => {
     return true;
   }
 
+  const importAes = (raw) => crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+
+  /** Wrap the current key for email recovery. Returns { rkey, wrap } (rkey goes to the server's locked table). */
+  async function makeRecovery(k = key, kid = keyId) {
+    if (!k) throw new Error('locked');
+    const r = crypto.getRandomValues(new Uint8Array(32));
+    const rk = await importAes(r);
+    const raw = await crypto.subtle.exportKey('raw', k);
+    return { rkey: toB64(r), wrap: await seal(rk, kid, toB64(raw)) };
+  }
+
+  /** The key id a recovery wrap belongs to ('' if none). */
+  const recoveryKid = (wrap) => (wrap ? String(wrap).split('.')[1] || '' : '');
+
+  /** Unlock with the recovery key from the server. Returns true if it opened the vault. */
+  async function unlockWithRecovery(record, rkeyB64) {
+    try {
+      const kid = await idFor(record.salt);
+      const raw = fromB64(await open(await importAes(fromB64(rkeyB64)), kid, record.recovery_wrap));
+      const k = await importAes(raw);
+      if ((await open(k, kid, record.check_value)) !== CHECK) return false;
+      key = k;
+      keyId = kid;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function activate(k, kid) {
     key = k;
     keyId = kid;
@@ -112,6 +145,9 @@ const Vault = (() => {
     unlock,
     activate,
     lock,
+    makeRecovery,
+    recoveryKid,
+    unlockWithRecovery,
     encryptNote,
     decryptNote,
     idFor,

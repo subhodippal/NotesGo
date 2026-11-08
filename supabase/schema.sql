@@ -3,6 +3,11 @@
 -- 2. Add "notesgo" under Project Settings → Data API → Exposed schemas (keep "myexpenses" there too).
 -- 3. Authentication → URL Configuration → Redirect URLs: add the URL(s) NotesGo is served from,
 --    e.g. https://<user>.github.io/NotesGo/ and http://localhost:3000/
+-- 4. Secure folder "Forgot password?" (email code):
+--    - Authentication → Sign In / Providers → Email: enabled.
+--    - Authentication → Emails → "Magic Link" template: include the code, e.g.  Your NotesGo code: {{ .Token }}
+--    - Supabase's built-in mailer only sends a few emails per hour (and on new projects only to
+--      the project's team members). For other people, set up custom SMTP under Authentication → Emails.
 
 create schema if not exists notesgo;
 grant usage on schema notesgo to anon, authenticated, service_role;
@@ -17,7 +22,8 @@ end $$;
 
 -- ---------------------------------------------------------------------------
 -- Notes
---   kind = 'text' (content) or 'checklist' (items: [{id, text, done}]).
+--   kind = 'text' (content) or 'checklist' (items: [{id, text, done}] checkboxes, mixed with
+--   [{id, type: 'text', text}] paragraphs, in order).
 --   Secure-folder notes have secure = true: title, content, items and tags are blank on the
 --   server and the real data is in `cipher` (AES-GCM, encrypted on the device with a key
 --   derived from the secure-folder password). The server never sees the password or key.
@@ -143,12 +149,52 @@ create table if not exists notesgo.vaults (
   updated_at  timestamptz not null default now()
 );
 
+alter table notesgo.vaults add column if not exists recovery_wrap text not null default ''; -- vault key wrapped with the recovery key
+
+-- Email recovery for the Secure folder ("Forgot password?").
+-- The recovery key lives here, in a table nobody can read directly (RLS on, no policies).
+-- get_vault_recovery() hands it out only to a session that verified an email code in the
+-- last 15 minutes, so a stolen Google session alone isn't enough to reset the password.
+create table if not exists notesgo.vault_recovery (
+  user_id     uuid primary key references notesgo.vaults (user_id) on delete cascade,
+  rkey        text not null,
+  updated_at  timestamptz not null default now()
+);
+alter table notesgo.vault_recovery enable row level security;
+revoke all on notesgo.vault_recovery from anon, authenticated;
+
+create or replace function notesgo.save_vault_recovery(p_rkey text, p_wrap text)
+returns void language plpgsql security definer set search_path = notesgo as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  update notesgo.vaults set recovery_wrap = p_wrap where user_id = auth.uid();
+  if not found then raise exception 'no secure folder'; end if;
+  insert into notesgo.vault_recovery (user_id, rkey) values (auth.uid(), p_rkey)
+  on conflict (user_id) do update set rkey = excluded.rkey, updated_at = now();
+end $$;
+
+create or replace function notesgo.get_vault_recovery()
+returns text language plpgsql stable security definer set search_path = notesgo as $$
+declare k text;
+begin
+  if not exists (
+    select 1 from jsonb_array_elements(coalesce(auth.jwt() -> 'amr', '[]'::jsonb)) a
+    where a ->> 'method' in ('otp', 'magiclink', 'email/signup')
+      and (a ->> 'timestamp')::bigint > extract(epoch from now())::bigint - 900
+  ) then
+    raise exception 'verify-email-first' using errcode = '42501';
+  end if;
+  select rkey into k from notesgo.vault_recovery where user_id = auth.uid();
+  return k;
+end $$;
+
 drop trigger if exists vaults_touch_updated_at on notesgo.vaults;
 create trigger vaults_touch_updated_at
   before insert or update on notesgo.vaults
   for each row execute function notesgo.touch_updated_at();
 
 grant select, insert, update, delete on all tables in schema notesgo to authenticated, service_role;
+revoke all on notesgo.vault_recovery from anon, authenticated; -- only through the functions above
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security
@@ -225,3 +271,6 @@ begin
     end loop;
   end if;
 end $$;
+
+-- Make the API see new tables/functions right away.
+notify pgrst, 'reload schema';
